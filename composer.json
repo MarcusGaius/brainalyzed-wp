@@ -1,0 +1,26 @@
+{
+	"name": "marcusgaius/brainalyzedwp",
+	"description": "WordPress adapter for Brainalyzed API.",
+	"license": "MIT",
+	"type": "wordpress-theme",
+	"minimum-stability": "dev",
+	"authors": [
+		{
+			"name": "Marko Gajić",
+			"email": "marko.gajic@developion.com",
+			"homepage": "https://github.com/MarcusGaius"
+		}
+	],
+	"require": {
+		"guzzlehttp/guzzle": "^7.4",
+		"symfony/var-dumper": "^5.4"
+	},
+	"autoload": {
+		"files": [
+			"src/functions.php"
+		],
+		"psr-4": {
+			"BrainalyzedWP\\": "src/"
+		}
+	}
+}
