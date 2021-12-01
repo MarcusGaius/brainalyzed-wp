@@ -6,7 +6,6 @@ use BrainalyzedWP\Helpers\Helper;
 use BrainalyzedWP\Services\API;
 use BrainalyzedWP\Services\Route;
 use BrainalyzedWP\Services\XHR;
-use Composer\Autoload\ClassLoader;
 
 class App
 {
@@ -60,7 +59,10 @@ class App
 			];
 			wp_localize_script('brainalyzed_wp', 'brainalyzed_wp', $frontObject);
 			wp_enqueue_script('brainalyzed_wp');
-			wp_enqueue_script('brainalyzed_signals', $this->baseUri('assets/js/signals.js'), [], microtime(), true);
+			if (is_page('signals')) {
+				wp_enqueue_script('brainalyzed_signals', $this->baseUri('assets/js/signals.js'), [], microtime(), true);
+				wp_enqueue_style( 'brainalyzed_signals_style', $this->baseUri('assets/css/signals.css'), [], microtime());
+			}
 		}, 99);
 	}
 
