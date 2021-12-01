@@ -37,33 +37,33 @@ class Signals {
     }
   }
 
-  async getFakeData() {
-    const creds = 'ZnJlcXRyYWRlcjp0ZXN0dGVzdA=='
-    const token = await fetch(
-      'https://freqtrade-demo.brainalyzed.com/api/v1/token/login',
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Basic ${creds}`,
-          // 'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      }
-    )
-      .then(res => res.json())
-      .then(data => data.access_token)
+  // async getFakeData() {
+  //   const creds = 'ZnJlcXRyYWRlcjp0ZXN0dGVzdA=='
+  //   const token = await fetch(
+  //     'https://freqtrade-demo.brainalyzed.com/api/v1/token/login',
+  //     {
+  //       method: 'POST',
+  //       headers: {
+  //         Authorization: `Basic ${creds}`,
+  //         // 'Content-Type': 'application/json',
+  //       },
+  //       credentials: 'include',
+  //     }
+  //   )
+  //     .then(res => res.json())
+  //     .then(data => data.access_token)
 
-    const data = await fetch(
-      'https://freqtrade-demo.brainalyzed.com/api/v1/pair_candles?pair=BTC%2FUSDT&timeframe=5m&limit=500',
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    ).then(res => res.json())
+  //   const data = await fetch(
+  //     'https://freqtrade-demo.brainalyzed.com/api/v1/pair_candles?pair=BTC%2FUSDT&timeframe=5m&limit=500',
+  //     {
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     }
+  //   ).then(res => res.json())
 
-    this.fetchedData = data
-  }
+  //   this.fetchedData = data
+  // }
 
   initialize() {
     this.rootHTML.innerHTML = `
@@ -126,32 +126,33 @@ class Signals {
       }
 
       const handler = async event => {
-        // fetch(brainalyzed_wp.ajax_url, {
-        //   headers: {
-        //     accept: 'application/json',
-        //   },
-        //   method: 'POST',
-        //   mode: 'cors',
-        //   cache: 'no-cache',
-        //   credentials: 'same-origin',
-        //   redirect: 'follow',
-        //   referrerPolicy: 'no-referrer',
-        //   body: JSON.stringify({
-        //     action: 'data',
-        //     pair: name,
-        //     frequency,
-        //     limit: 500,
-        //   }),
-        // })
-        //   .then(res => res.json())
-        //   .then(data => this.dataCharter.setData(data))
-        this.getFakeData()
-        const i = setInterval(() => {
-          if (this.fetchedData) {
-            clearInterval(i)
-            this.dataCharter.setData(this.fetchedData)
-          }
+        fetch(brainalyzed_wp.ajax_url, {
+          headers: {
+            accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          method: 'POST',
+          mode: 'cors',
+          cache: 'no-cache',
+          credentials: 'same-origin',
+          redirect: 'follow',
+          referrerPolicy: 'no-referrer',
+          body: JSON.stringify({
+            action: 'data',
+            pair: name,
+            frequency,
+            limit: 500,
+          }),
         })
+          .then(res => res.json())
+          .then(data => this.dataCharter.setData(data))
+        // this.getFakeData()
+        // const i = setInterval(() => {
+        //   if (this.fetchedData) {
+        //     clearInterval(i)
+        //     this.dataCharter.setData(this.fetchedData)
+        //   }
+        // })
         if (this.active) this.active.classList.remove('active')
         this.active = event.currentTarget
         this.active.classList.add('active')
@@ -1165,6 +1166,7 @@ app.dataCharter = dataCharter
 fetch(brainalyzed_wp.ajax_url, {
   headers: {
     accept: 'application/json',
+    'Content-Type': 'application/json',
   },
   method: 'POST',
   mode: 'cors',
