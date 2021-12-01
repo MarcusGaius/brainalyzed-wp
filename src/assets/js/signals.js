@@ -1,14 +1,177 @@
 /* eslint-disable unused-imports/no-unused-vars */
-/* eslint-disable max-classes-per-file */
-/* eslint-disable unused-imports/no-unused-vars */
 /* eslint-disable max-lines */
 /* eslint-disable camelcase */
 /* eslint-disable no-undef */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable react/prop-types */
 /* eslint-disable max-classes-per-file */
+/* eslint-disable no-use-before-define */
+/* eslint-disable no-console */
+/* eslint-disable no-shadow */
 /* eslint-disable no-undef */
 /* eslint-disable unused-imports/no-unused-vars */
+
+class Signals {
+  constructor(htmlElement, dataCharter, profitCharter, signalHighlight) {
+    if (!htmlElement) throw Error('No root element passed to the App')
+    // if (!dataCharter) throw Error('No Data Charter passed to the App')
+    // if (!profitCharter) throw Error('No Profit Charter passed to the App')
+    // if (!signalHighlight) throw Error('No Signal Highlight passed to the App')
+    this.rootHTML = htmlElement
+    this.mounted = false
+    this.pairs = []
+    this.active = null
+    this.data = null
+    this.handlers = new Map()
+    this.dataCharter = dataCharter
+    this.profitCharter = profitCharter
+    this.signalHighlight = signalHighlight
+
+    this.initialize()
+  }
+
+  setPairs(pairs) {
+    if (pairs) {
+      this.pairs = pairs
+      this.renderPairs()
+    }
+  }
+
+  async getFakeData() {
+    const creds = 'ZnJlcXRyYWRlcjp0ZXN0dGVzdA=='
+    const token = await fetch(
+      'https://freqtrade-demo.brainalyzed.com/api/v1/token/login',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Basic ${creds}`,
+          // 'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      }
+    )
+      .then(res => res.json())
+      .then(data => data.access_token)
+
+    const data = await fetch(
+      'https://freqtrade-demo.brainalyzed.com/api/v1/pair_candles?pair=BTC%2FUSDT&timeframe=5m&limit=500',
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    ).then(res => res.json())
+
+    this.fetchedData = data
+  }
+
+  initialize() {
+    this.rootHTML.innerHTML = `
+    <div id="signal-panel"></div>
+      <div id="signals">
+        <div id="charts">
+          <div id="data-chart-wrapper"></div>
+          <div id="profit-chart-wrapper"></div>
+        </div>
+        <div id="signal-controls">
+        </div>
+      </div>
+    `
+  }
+
+  clearHandlers(root) {
+    ;[...root.children].forEach(e => {
+      if (this.handlers.has(e)) {
+        e.removeEventListener(this.handlers.get(e)[0], this.handlers.get(e)[1])
+      }
+      if (e.children.length) {
+        ;[...e.children].forEach(this.clearHandlers.bind(this))
+      }
+    })
+    if (this.handlers.has(root)) {
+      root.removeEventListener(
+        this.handlers.get(root)[0],
+        this.handlers.get(root)[1]
+      )
+    }
+  }
+
+  renderPairs() {
+    const root = document.getElementById('signal-controls')
+    this.clearHandlers(root)
+    root.innerHTML = ''
+    const controls = this.pairs.map(e => {
+      const { name, frequency, delayed } = e
+      // CONTROL HTML
+      const btn = document.createElement('BUTTON')
+      btn.classList.add('pair-control')
+      btn.setAttribute('type', 'button')
+
+      // NAME HTML
+      const nameSpan = document.createElement('SPAN')
+      nameSpan.innerHTML = name
+      btn.appendChild(nameSpan)
+
+      if (delayed) {
+        // DELAYED HTML ADDITION
+        const delayedSpan = document.createElement('SPAN')
+        delayedSpan.innerHTML = ' (delayed)'
+        btn.appendChild(delayedSpan)
+
+        // TOOLTIP HTML
+        const tooltip = document.createElement('DIV')
+        tooltip.classList.add('tooltip')
+        tooltip.innerHTML = 'You are not subscribed to this signal.'
+        btn.appendChild(tooltip)
+      }
+
+      const handler = async event => {
+        // fetch(brainalyzed_wp.ajax_url, {
+        //   headers: {
+        //     accept: 'application/json',
+        //   },
+        //   method: 'POST',
+        //   mode: 'cors',
+        //   cache: 'no-cache',
+        //   credentials: 'same-origin',
+        //   redirect: 'follow',
+        //   referrerPolicy: 'no-referrer',
+        //   body: JSON.stringify({
+        //     action: 'data',
+        //     pair: name,
+        //     frequency,
+        //     limit: 500,
+        //   }),
+        // })
+        //   .then(res => res.json())
+        //   .then(data => this.dataCharter.setData(data))
+        this.getFakeData()
+        const i = setInterval(() => {
+          if (this.fetchedData) {
+            clearInterval(i)
+            this.dataCharter.setData(this.fetchedData)
+          }
+        })
+        if (this.active) this.active.classList.remove('active')
+        this.active = event.currentTarget
+        this.active.classList.add('active')
+      }
+      const event = 'click'
+      this.handlers.set(btn, [event, handler])
+      btn.addEventListener(event, handler)
+
+      return btn
+    })
+
+    if (!this.active) {
+      // eslint-disable-next-line prefer-destructuring
+      // controls[0].click()
+    }
+    controls.forEach(control => root.appendChild(control))
+  }
+}
+
+const app = new Signals(document.getElementById('signals-root'))
 
 const namespace = 'http://www.w3.org/2000/svg'
 const removeMillis = 1000
@@ -997,143 +1160,21 @@ class Charter {
 const dataCharter = new Charter({
   root: document.getElementById('data-chart-wrapper'),
 })
-// eslint-disable-next-line unused-imports/no-unused-vars
-const profitCharter = new Charter({
-  root: document.getElementById('profit-chart-wrapper'),
+
+app.dataCharter = dataCharter
+fetch(brainalyzed_wp.ajax_url, {
+  headers: {
+    accept: 'application/json',
+  },
+  method: 'POST',
+  mode: 'cors',
+  cache: 'no-cache',
+  credentials: 'same-origin',
+  redirect: 'follow',
+  referrerPolicy: 'no-referrer',
+  body: JSON.stringify({
+    action: 'pairs',
+  }),
 })
-
-class SignalPicker {
-  constructor(htmlElement) {
-    if (!htmlElement) throw Error('No root element passed to Signal Picker')
-    this.rootHTML = htmlElement
-    this.mounted = false
-    this.pairs = []
-    this.active = null
-    this.data = null
-    this.initialize()
-    this.handlers = new Map()
-  }
-
-  setPairs(pairs) {
-    if (pairs) {
-      this.pairs = pairs
-      this.render()
-    }
-  }
-
-  initialize() {
-    this.rootHTML.innerHTML = `
-    <div id="signal-panel"></div>
-      <div id="signals">
-        <div id="charts">
-          <div id="data-chart-wrapper"></div>
-          <div id="profit-chart-wrapper"></div>
-        </div>
-        <div id="signal-controls">
-          <button class="pair-control">
-            <span>BTC/USDT</span>
-          </button>
-          <button class="pair-control active">
-            <span>BTC/USDT</span>
-          </button>
-          <button class="pair-control">
-            <span>BTC/USDT</span>
-            <span>(delayed)</span>
-            <div class="tooltip">You are not subscribed to this signal.</div>
-          </button>
-          <button class="pair-control">
-            <span>BTC/USDT</span>
-            <span>(delayed)</span>
-            <div class="tooltip">You are not subscribed to this signal.</div>
-          </button>
-          <button class="pair-control active">
-            <span>BTC/USDT</span>
-            <span>(delayed)</span>
-            <div class="tooltip">You are not subscribed to this signal.</div>
-          </button>
-        </div>
-      </div>
-    `
-  }
-
-  clearHandlers(root) {
-    ;[...root.children].forEach(e => {
-      if (this.handlers.has(e))
-        e.removeEventListener(this.handlers.get(e)[0], this.handlers.get(e)[1])
-      if (e.children.length) {
-        ;[...e.children].forEach(this.clearHandlers.bind(this))
-      }
-    })
-    if (this.handlers.has(root)) {
-      root.removeEventListener(
-        this.handlers.get(root)[0],
-        this.handlers.get(root)[1]
-      )
-    }
-  }
-
-  render() {
-    const menuRoot = document.getElementById('signal-controls')
-    this.clearHandlers(menuRoot)
-    menuRoot.innerHTML = ''
-    this.pairs
-      .map(e => {
-        const { name, frequency, delayed } = e
-        // CONTROL HTML
-        const btn = document.createElement('BUTTON')
-        btn.classList.add('pair-control')
-        btn.setAttribute('type', 'button')
-
-        // NAME HTML
-        const nameSpan = document.createElement('SPAN')
-        nameSpan.innerHTML = name
-        btn.appendChild(nameSpan)
-
-        if (delayed) {
-          // DELAYED HTML ADDITION
-          const delayedSpan = document.createElement('SPAN')
-          delayedSpan.innerHTML = ' (delayed)'
-          btn.appendChild(delayedSpan)
-
-          // TOOLTIP HTML
-          const tooltip = document.createElement('DIV')
-          tooltip.classList.add('tooltip')
-          tooltip.innerHTML = 'You are not subscribed to this signal.'
-          btn.appendChild(tooltip)
-        }
-
-        const handler = event => {
-          fetch(brainalyzed_wp.ajax_url, {
-            headers: {
-              accept: 'application/json',
-            },
-            method: 'POST',
-            mode: 'cors',
-            cache: 'no-cache',
-            credentials: 'same-origin',
-            redirect: 'follow',
-            referrerPolicy: 'no-referrer',
-            body: JSON.stringify({
-              action: 'data',
-              pair: name,
-              frequency,
-              limit: 500,
-            }),
-          })
-            .then(res => res.json())
-            .then(data => dataCharter.setData(data))
-          if (this.active) this.active.classList.remove('active')
-          this.active = event.currentTarget
-          this.active.classList.add('active')
-        }
-        const event = 'click'
-        this.handlers.set(btn, [event, handler])
-        btn.addEventListener(event, handler)
-
-        return btn
-      })
-      .forEach(control => menuRoot.appendChild(control))
-  }
-}
-
-const signalPicker = new SignalPicker(document.getElementById('signals-root'))
+  .then(res => res.json())
+  .then(data => app.setPairs(data))
