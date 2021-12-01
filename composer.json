@@ -16,9 +16,6 @@
 		"symfony/var-dumper": "^5.4"
 	},
 	"autoload": {
-		"files": [
-			"src/functions.php"
-		],
 		"psr-4": {
 			"BrainalyzedWP\\": "src/"
 		}

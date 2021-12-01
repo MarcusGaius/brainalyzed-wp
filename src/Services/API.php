@@ -6,7 +6,7 @@ use GuzzleHttp\Client;
 
 class API
 {
-	private $option_prefix = 'brainalyzed_api_';
+	public $option_prefix = 'brainalyzed_api_';
 
 	private $client;
 	private $accessToken;

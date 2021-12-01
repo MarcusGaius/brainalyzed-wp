@@ -1,0 +1,359 @@
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	padding: 0;
+	margin: 0;
+}
+
+body {
+}
+
+#signals-root {
+	background-color: rgb(25, 29, 37);
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	/* align-items: center; */
+	height: 100vh;
+	/* width: fit-content; */
+	/* min-width: 100vw; */
+	width: 1500px;
+	padding: 20px;
+}
+
+#signals {
+	display: flex;
+	width: 100%;
+}
+
+#charts {
+	height: calc(100vh - 150px);
+	width: calc(100% - 200px);
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	align-items: flex-start;
+}
+
+#signal-controls {
+	width: 200px;
+	flex-shrink: 0;
+	display: flex;
+	flex-direction: column;
+	padding: 5px 0;
+}
+
+#signal-controls > .pair-control {
+	position: relative;
+	display: block;
+	text-align: start;
+	background-color: rgb(25, 29, 37);
+	padding: 10px;
+	width: 100%;
+	color: rgba(255, 255, 255, 0.4);
+	font-family: 'Roboto', sans-serif;
+	font-size: small;
+	border: solid 1px rgba(255, 255, 255, 0.4);
+}
+
+#signal-controls > .pair-control:focus,
+#signal-controls > .pair-control.active:focus {
+	background-color: #56db92;
+	color: black;
+	outline: none;
+}
+
+#signal-controls > .pair-control.active {
+	background-color: mediumseagreen;
+	color: rgb(25, 29, 37);
+	font-weight: bold;
+	border: none;
+}
+
+#signal-controls > .pair-control > .tooltip {
+	position: absolute;
+	display: none;
+	justify-content: center;
+	align-items: center;
+	width: 200px;
+	top: 0px;
+	left: -200px;
+	opacity: 1;
+	border: solid 1px rgba(255, 255, 255, 0.4);
+	background-color: lemonchiffon;
+	font-family: Arial, Helvetica, sans-serif;
+	font-weight: normal;
+	color: black;
+	z-index: 1;
+	padding: 2px;
+	font-size: 0.9em;
+}
+
+#signal-controls > .pair-control:hover > .tooltip {
+	display: flex;
+	animation: show-tooltip 1.2s ease-out;
+}
+
+@keyframes show-tooltip {
+	0% {
+		left: 0px;
+		opacity: 0;
+	}
+	50% {
+		left: 0px;
+		opacity: 0;
+	}
+	100% {
+		left: -200px;
+		opacity: 1;
+	}
+}
+@-webkit-keyframes show-tooltip {
+	0% {
+		left: 0px;
+		opacity: 0;
+	}
+	50% {
+		left: 0px;
+		opacity: 0;
+	}
+	100% {
+		left: -200px;
+		opacity: 1;
+	}
+}
+
+#signal-panel {
+	position: relative;
+	display: flex;
+	flex-direction: row;
+
+	justify-content: center;
+
+	width: 100%;
+	height: 150px;
+
+	/* border: 1px solid rgba(255, 255, 255, 0.1); */
+}
+
+#signal-svg {
+	flex-shrink: 0;
+	width: 75px;
+	height: 150px;
+	margin: auto 0px;
+	margin-right: -5px;
+}
+#signal-svg > .positive {
+	fill: mediumseagreen;
+	stroke: green;
+	stroke-width: 1;
+}
+#signal-svg > .negative {
+	fill: indianred;
+}
+#signal-div {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	/* width: 100%; */
+	height: 100%;
+	flex-shrink: 1;
+	margin: auto 10px;
+	margin-left: -5px;
+}
+#signal-span {
+	font-family: 'Roboto', sans-serif;
+	font-weight: 600;
+	font-size: x-large;
+}
+#signal-time {
+	font-family: 'Roboto', sans-serif;
+	font-size: small;
+}
+#signal-div > .positive {
+	color: mediumseagreen;
+	filter: drop-shadow(0 0 10px mediumseagreen);
+}
+#signal-div > .negative {
+	color: indianred;
+	filter: drop-shadow(0 0 10px indianred);
+}
+
+#data-chart-wrapper {
+	position: relative;
+	display: flex;
+	flex-direction: row;
+
+	justify-content: flex-start;
+
+	/* width: 1300px; */
+	width: 100%;
+	height: 550px;
+
+	border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#profit-chart-wrapper {
+	position: relative;
+	display: flex;
+	flex-direction: row;
+
+	justify-content: flex-start;
+
+	/* width: 1300px; */
+	width: 100%;
+	height: 200px;
+
+	border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#chart-area {
+	display: flex;
+	flex-direction: column;
+
+	width: calc(100% - 50px);
+	height: 100%;
+
+	overflow-x: auto;
+}
+
+#chart-graph {
+	display: flex;
+
+	height: calc(100% - 40px);
+
+	flex-shrink: 0;
+	flex-grow: 0;
+}
+
+.mask-white {
+	fill: white;
+}
+.mask-black {
+	fill: black;
+}
+
+#chart-x-axis {
+	display: flex;
+
+	height: 30px;
+	margin-top: 10px;
+
+	flex-shrink: 0;
+	flex-grow: 0;
+
+	/* border-top: 1px solid rgba(255, 255, 255, 0.1); */
+}
+
+#chart-x-axis > .xAxis-text {
+	fill: rgba(255, 255, 255, 0.4);
+	font-family: 'Roboto', sans-serif;
+}
+
+#chart-y-axis {
+	position: absolute;
+	display: flex;
+
+	width: 40px;
+
+	right: 0;
+
+	flex-shrink: 0;
+	flex-grow: 0;
+
+	/* border-left: 1px solid rgba(255, 255, 255, 0.1); */
+}
+
+#chart-y-axis > .yAxis-text {
+	fill: rgba(255, 255, 255, 0.4);
+	font-family: 'Roboto', sans-serif;
+}
+
+#chart-graph > #chart-grid-group > .grid-line {
+	vector-effect: non-scaling-stroke;
+	stroke: rgba(255, 255, 255, 0.1);
+}
+
+#chart-graph > #chart-candle-group > .candle-wick {
+	vector-effect: non-scaling-stroke;
+}
+#chart-graph > #chart-candle-group > .candle-body {
+	stroke-width: 0;
+}
+#chart-graph > #chart-candle-group > .positive {
+	fill: mediumseagreen;
+	stroke: mediumseagreen;
+}
+#chart-graph > #chart-candle-group > .negative {
+	fill: indianred;
+	stroke: indianred;
+}
+
+#chart-graph > #chart-volume-group > .positive {
+	fill: rgba(60, 179, 113, 0.6);
+}
+#chart-graph > #chart-volume-group > .negative {
+	fill: rgba(205, 92, 92, 0.6);
+}
+
+#chart-graph > #chart-signal-group > defs > linearGradient > stop {
+	stop-color: rgba(0, 0, 0, 0);
+}
+#chart-graph > #chart-signal-group > defs > linearGradient > .positive {
+	stop-color: rgba(60, 179, 113, 0.05);
+}
+#chart-graph > #chart-signal-group > defs > linearGradient > .negative {
+	stop-color: rgba(205, 92, 92, 0.05);
+}
+#chart-graph > #chart-signal-group > .signal-line {
+	vector-effect: non-scaling-stroke;
+}
+#chart-graph > #chart-signal-group .signal-ring {
+	vector-effect: non-scaling-stroke;
+	fill: none;
+	stroke: rgba(255, 255, 255, 0.1);
+}
+#chart-graph > #chart-signal-group > * {
+	vector-effect: non-scaling-stroke;
+	stroke-width: 0;
+}
+#chart-graph > #chart-signal-group > .signal-line {
+	vector-effect: non-scaling-stroke;
+	stroke-width: 0.5;
+}
+#chart-graph > #chart-signal-group .positive {
+	vector-effect: non-scaling-stroke;
+	fill: mediumspringgreen;
+	stroke: green;
+}
+#chart-graph > #chart-signal-group .negative {
+	vector-effect: non-scaling-stroke;
+	fill: indianred;
+	stroke: red;
+}
+
+#chart-graph > #chart-profit-group .path {
+	vector-effect: non-scaling-stroke;
+	fill: none;
+	stroke: white;
+}
+#chart-graph > #chart-profit-group .positive {
+	vector-effect: non-scaling-stroke;
+	fill: mediumspringgreen;
+	opacity: 0.05;
+}
+#chart-graph > #chart-profit-group .negative {
+	vector-effect: non-scaling-stroke;
+	fill: indianred;
+	opacity: 0.05;
+}
+#chart-graph > #chart-profit-group > #zero-line {
+	vector-effect: non-scaling-stroke;
+	fill: none;
+	stroke: white;
+}
