@@ -22,8 +22,6 @@ const gridSizeX = 64
 const gridSizeY = 16
 const rounding = false
 
-console.log('pera')
-
 class Charter {
   constructor(props) {
     this.rootElement = props.root
