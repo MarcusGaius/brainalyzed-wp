@@ -1,7 +1,6 @@
 <?php
 
 use BrainalyzedWP\Bootstrap\App;
-use BrainalyzedWP\Controllers\Api\SignalController;
+use BrainalyzedWP\Controllers\TestController;
 
-App::$app->routes->post('pera', [SignalController::class, 'index']);
-App::$app->routes->post('mika', [SignalController::class, 'show']);
+App::$app->routes->post('data', [TestController::class, 'data']);

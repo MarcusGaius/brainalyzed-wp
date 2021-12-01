@@ -2,6 +2,8 @@
 
 namespace BrainalyzedWP\Services;
 
+use BrainalyzedWP\Helpers\Helper;
+
 class Route
 {
 	/**
@@ -48,16 +50,14 @@ class Route
 	public function registerRoutes()
 	{
 		foreach ($this->_routes as $route) {
-			add_action('rest_api_init', function () use ($route) {
-				register_rest_route(
-					sprintf('%s/%s', self::NAMESPACE, self::VERSION),
-					$route['uri'],
-					[
-						'methods' => $route['method'],
-						'callback' => $route['callback'],
-					],
-				);
-			});
+			register_rest_route(
+				sprintf('%s/%s', self::NAMESPACE, self::VERSION),
+				$route['uri'],
+				[
+					'methods' => $route['method'],
+					'callback' => $route['callback'],
+				],
+			);
 		}
 	}
 }
