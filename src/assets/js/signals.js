@@ -37,34 +37,6 @@ class Signals {
     }
   }
 
-  // async getFakeData() {
-  //   const creds = 'ZnJlcXRyYWRlcjp0ZXN0dGVzdA=='
-  //   const token = await fetch(
-  //     'https://freqtrade-demo.brainalyzed.com/api/v1/token/login',
-  //     {
-  //       method: 'POST',
-  //       headers: {
-  //         Authorization: `Basic ${creds}`,
-  //         // 'Content-Type': 'application/json',
-  //       },
-  //       credentials: 'include',
-  //     }
-  //   )
-  //     .then(res => res.json())
-  //     .then(data => data.access_token)
-
-  //   const data = await fetch(
-  //     'https://freqtrade-demo.brainalyzed.com/api/v1/pair_candles?pair=BTC%2FUSDT&timeframe=5m&limit=500',
-  //     {
-  //       headers: {
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //     }
-  //   ).then(res => res.json())
-
-  //   this.fetchedData = data
-  // }
-
   initialize() {
     this.rootHTML.innerHTML = `
     <div id="signal-panel"></div>
@@ -126,10 +98,14 @@ class Signals {
       }
 
       const handler = async event => {
+        const body = new FormData()
+        body.append('action', 'data')
+        body.append('pair', name)
+        body.append('frequency', '5m')
+        body.append('limit', 500)
         fetch(brainalyzed_wp.ajax_url, {
           headers: {
-            accept: 'application/json',
-            'Content-Type': 'application/json',
+            Accept: 'application/json',
           },
           method: 'POST',
           mode: 'cors',
@@ -137,22 +113,10 @@ class Signals {
           credentials: 'same-origin',
           redirect: 'follow',
           referrerPolicy: 'no-referrer',
-          body: JSON.stringify({
-            action: 'data',
-            pair: name,
-            frequency,
-            limit: 500,
-          }),
+          body,
         })
           .then(res => res.json())
           .then(data => this.dataCharter.setData(data))
-        // this.getFakeData()
-        // const i = setInterval(() => {
-        //   if (this.fetchedData) {
-        //     clearInterval(i)
-        //     this.dataCharter.setData(this.fetchedData)
-        //   }
-        // })
         if (this.active) this.active.classList.remove('active')
         this.active = event.currentTarget
         this.active.classList.add('active')
@@ -1163,10 +1127,11 @@ const dataCharter = new Charter({
 })
 
 app.dataCharter = dataCharter
+body = new FormData()
+body.append('action', 'pairs')
 fetch(brainalyzed_wp.ajax_url, {
   headers: {
-    accept: 'application/json',
-    'Content-Type': 'application/json',
+    Accept: 'application/json',
   },
   method: 'POST',
   mode: 'cors',
@@ -1174,9 +1139,7 @@ fetch(brainalyzed_wp.ajax_url, {
   credentials: 'same-origin',
   redirect: 'follow',
   referrerPolicy: 'no-referrer',
-  body: JSON.stringify({
-    action: 'pairs',
-  }),
+  body,
 })
   .then(res => res.json())
   .then(data => app.setPairs(data))
