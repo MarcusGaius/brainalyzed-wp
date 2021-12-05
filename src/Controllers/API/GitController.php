@@ -18,7 +18,7 @@ class GitController
 		}
 		$path = App::$app->basePath();
 		$output = [];
-		exec("git -C $path status 2>&1", $output);
+		exec("git -C $path pull 2>&1", $output);
 		wp_send_json([
 			'output' => $output,
 		]);
