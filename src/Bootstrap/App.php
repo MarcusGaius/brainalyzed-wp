@@ -6,6 +6,7 @@ use BrainalyzedWP\Helpers\Helper;
 use BrainalyzedWP\Services\API;
 use BrainalyzedWP\Services\Route;
 use BrainalyzedWP\Services\XHR;
+use Dotenv\Dotenv;
 
 class App
 {
@@ -24,6 +25,8 @@ class App
 	{
 		static::$app = $this;
 
+		$dotenv = Dotenv::createImmutable(get_stylesheet_directory());
+		$dotenv->safeLoad();
 		$this->init();
 	}
 

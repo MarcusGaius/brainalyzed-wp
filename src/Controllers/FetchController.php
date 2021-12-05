@@ -125,4 +125,14 @@ class FetchController
 		);
 		wp_send_json($trades);
 	}
+
+	public function frequencies()
+	{
+		wp_send_json([
+			[
+				'name' => '5m',
+				'value' => 30000,
+			],
+		]);
+	}
 }

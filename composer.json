@@ -13,7 +13,8 @@
 	],
 	"require": {
 		"guzzlehttp/guzzle": "^7.4",
-		"symfony/var-dumper": "^5.4"
+		"symfony/var-dumper": "^5.4",
+		"vlucas/phpdotenv": "5.4.x-dev"
 	},
 	"autoload": {
 		"psr-4": {
