@@ -12,7 +12,7 @@ class CronController
 		try {
 			$this->whitelist();
 			$this->listData();
-			$this->profitData();
+			$this->tradesData();
 		} catch (\Throwable $th) {
 			wp_send_json([
 				'status' => 'error',
@@ -107,17 +107,45 @@ class CronController
 		);
 	}
 
-	public function profitData()
+	public function tradesData()
 	{
-		$handle = 'profit';
-		$profit = App::$app->api->get($handle);
+		$handle = 'trades';
+		$tradesDataOld = get_option(
+			sprintf(
+				"%s%s",
+				App::$app->api->option_prefix,
+				Helper::slugify($handle),
+			),
+			[],
+		);
+
+		$tradesDataNew = App::$app->api->get($handle);
+		if (empty($tradesDataOld)) {
+			update_option(
+				sprintf(
+					"%s%s",
+					App::$app->api->option_prefix,
+					Helper::slugify($handle),
+				),
+				$tradesDataNew,
+			);
+			return;
+		}
+
+		$tradesRaw = Helper::md_unique_sort('open_timestamp', $tradesDataOld['trades'], $tradesDataNew['trades']);
+
+		$tradesData = [
+			'trades' => $tradesRaw,
+			'trades_count' => count($tradesRaw),
+			'total_trades' => count($tradesRaw),
+		];
 		update_option(
 			sprintf(
 				"%s%s",
 				App::$app->api->option_prefix,
 				Helper::slugify($handle),
 			),
-			$profit,
+			$tradesData,
 		);
 	}
 

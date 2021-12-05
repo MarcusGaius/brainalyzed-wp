@@ -113,8 +113,16 @@ class FetchController
 		$userSubscriptions = wcs_get_users_subscriptions($user->ID);
 	}
 
-	public function profit()
+	public function trades()
 	{
-		
+		$handle = 'trades';
+		$trades = get_option(
+			sprintf(
+				"%s%s",
+				App::$app->api->option_prefix,
+				Helper::slugify($handle),
+			),
+		);
+		wp_send_json($trades);
 	}
 }
