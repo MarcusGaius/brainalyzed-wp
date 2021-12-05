@@ -39,7 +39,6 @@ class FetchController
 	public function whitelist()
 	{
 		$whitelist = get_option('pair_list_raw');
-		if (!$whitelist) (new CronController)->whitelist();
 		wp_send_json($whitelist);
 	}
 
@@ -80,6 +79,7 @@ class FetchController
 		$pairData['data'] = array_slice($pairData['data'], -$limit, $limit);
 		$pairData['data_start'] = $pairData['data'][0][0] . '+00:00';
 		$pairData['data_start_ts'] = $pairData['data'][0][25];
+		$pairData['length'] = $limit;
 		wp_send_json($pairData);
 	}
 
@@ -111,5 +111,10 @@ class FetchController
 	{
 		global $user;
 		$userSubscriptions = wcs_get_users_subscriptions($user->ID);
+	}
+
+	public function profit()
+	{
+		
 	}
 }

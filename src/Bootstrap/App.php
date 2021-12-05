@@ -60,6 +60,7 @@ class App
 			wp_localize_script('brainalyzed_wp', 'brainalyzed_wp', $frontObject);
 			wp_enqueue_script('brainalyzed_wp');
 			if (is_page('signals')) {
+				wp_enqueue_script('moment', $this->baseUri('assets/js/moment.min.js'), [], '2.7.0', true);
 				wp_enqueue_script('brainalyzed_signals', $this->baseUri('assets/js/signals.js'), [], microtime(), true);
 				wp_enqueue_style( 'brainalyzed_signals_style', $this->baseUri('assets/css/signals.css'), [], microtime());
 			}

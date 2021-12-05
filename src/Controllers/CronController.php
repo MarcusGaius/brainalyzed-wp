@@ -7,17 +7,38 @@ use BrainalyzedWP\Helpers\Helper;
 
 class CronController
 {
+	public function cronHandler()
+	{
+		try {
+			$this->whitelist();
+			$this->listData();
+			$this->profitData();
+		} catch (\Throwable $th) {
+			wp_send_json([
+				'status' => 'error',
+				'message' => $th->getMessage(),
+			]);
+		}
+
+		wp_send_json([
+			'status' => 'success',
+		]);
+	}
 	public function whitelist()
 	{
 		$whitelist = App::$app->api->get('whitelist');
 		update_option('pair_list_raw', $whitelist['whitelist']);
 	}
 
-	function listData($list, $timeframe)
+	function listData()
 	{
+		$list = get_option('pair_list_raw');
+		$timeframes = $this->_getTimeframes();
 		$candleData = [];
 		foreach ($list as $pair) {
-			$candleData[] = $this->pairData($pair, $timeframe);
+			foreach ($timeframes as $timeframe) {
+				$candleData[] = $this->pairData($pair, $timeframe);
+			}
 		}
 	}
 
@@ -37,7 +58,7 @@ class CronController
 					'query' => [
 						'pair'		=> $pair,
 						'timeframe'	=> $timeframe,
-						'limit'		=> empty($candleDataOld) ? 500 : 20,
+						'limit'		=> 500,
 					],
 				],
 			);
@@ -84,5 +105,26 @@ class CronController
 			),
 			$candleData,
 		);
+	}
+
+	public function profitData()
+	{
+		$handle = 'profit';
+		$profit = App::$app->api->get($handle);
+		update_option(
+			sprintf(
+				"%s%s",
+				App::$app->api->option_prefix,
+				Helper::slugify($handle),
+			),
+			$profit,
+		);
+	}
+
+	private function _getTimeframes()
+	{
+		return [
+			'5m',
+		];
 	}
 }

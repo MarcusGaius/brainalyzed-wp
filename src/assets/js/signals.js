@@ -101,7 +101,7 @@ class Signals {
         const body = new FormData()
         body.append('action', 'data')
         body.append('pair', name)
-        body.append('frequency', '5m')
+        body.append('freq', '5m')
         body.append('limit', 500)
         fetch(brainalyzed_wp.ajax_url, {
           headers: {
@@ -130,7 +130,7 @@ class Signals {
 
     if (!this.active) {
       // eslint-disable-next-line prefer-destructuring
-      // controls[0].click()
+      controls[0].click()
     }
     controls.forEach(control => root.appendChild(control))
   }
