@@ -66,7 +66,7 @@ class FetchController
 	public function data()
 	{
 		$pair = $_POST['pair'];
-		$freq = $_POST['freq'];
+		$freq = $_POST['frequency'];
 		$limit = $_POST['limit'];
 
 		$pairData = get_option(sprintf(
