@@ -4,6 +4,7 @@ namespace BrainalyzedWP\Bootstrap;
 
 use BrainalyzedWP\Helpers\Helper;
 use BrainalyzedWP\Services\API;
+use BrainalyzedWP\Services\Cron;
 use BrainalyzedWP\Services\Route;
 use BrainalyzedWP\Services\XHR;
 use Dotenv\Dotenv;
@@ -20,6 +21,9 @@ class App
 
 	/** @var API */
 	public $api;
+
+	/** @var Cron */
+	public $cron;
 
 	private function __construct()
 	{
@@ -54,7 +58,7 @@ class App
 			$this->api = new API;
 			require_once $this->basePath('routes/web.php');
 		});
-		
+
 		add_action('wp_enqueue_scripts', function () {
 			wp_register_script('brainalyzed_wp', $this->baseUri('assets/js/app.js'), [], microtime(), true);
 			$frontObject = [
@@ -65,9 +69,34 @@ class App
 			if (is_page('signals')) {
 				wp_enqueue_script('moment', $this->baseUri('assets/js/moment.min.js'), [], '2.7.0', true);
 				wp_enqueue_script('brainalyzed_signals', $this->baseUri('assets/js/signals.js'), [], microtime(), true);
-				wp_enqueue_style( 'brainalyzed_signals_style', $this->baseUri('assets/css/signals.css'), [], microtime());
+				wp_enqueue_style('brainalyzed_signals_style', $this->baseUri('assets/css/signals.css'), [], microtime());
 			}
 		}, 99);
+
+		add_filter('cron_schedules', function ($schedules) {
+			$schedules['five_minutes'] = [
+				'interval' => 5 * 60,
+				'display'  => esc_html__('Every Five Minute'),
+			];
+			$schedules['minute'] = [
+				'interval' => 60,
+				'display'  => esc_html__('Every Minute'),
+			];
+			return $schedules;
+		});
+
+		add_action('brainalyzed_cron_task', function () {
+			$this->cron = new Cron;
+			$this->cron->controller->cronHandler();
+		});
+
+		if (!wp_next_scheduled('brainalyzed_cron_task')) {
+			wp_schedule_event(time(), 'five_minutes', 'brainalyzed_cron_task');
+		} else {
+			if (time() - wp_next_scheduled('brainalyzed_cron_task') > 5 * 60) {
+				wp_unschedule_event( wp_next_scheduled('brainalyzed_cron_task'), 'brainalyzed_cron_task' );
+			}
+		}
 	}
 
 	public function basePath($path = '')

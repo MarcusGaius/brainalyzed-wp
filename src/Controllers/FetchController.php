@@ -85,8 +85,7 @@ class FetchController
 
 	private function _notDelayed()
 	{
-		global $user;
-		$userSubscriptions = wcs_get_users_subscriptions($user->ID);
+		$userSubscriptions = wcs_get_users_subscriptions(get_current_user_id());
 		$notDelayed = [];
 
 		foreach ($userSubscriptions as $sub) {
