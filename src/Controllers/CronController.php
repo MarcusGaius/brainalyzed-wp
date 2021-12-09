@@ -10,6 +10,7 @@ class CronController
 	public function cronHandler()
 	{
 		try {
+			Helper::log('pera');
 			$this->whitelist();
 			$this->listData();
 			$this->tradesData();
@@ -24,6 +25,7 @@ class CronController
 			'status' => 'success',
 		]);
 	}
+
 	public function whitelist()
 	{
 		$whitelist = App::$app->api->get('whitelist');
