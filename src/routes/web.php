@@ -1,11 +1,11 @@
 <?php
 
 use BrainalyzedWP\Bootstrap\App;
-use BrainalyzedWP\Controllers\CronController;
 use BrainalyzedWP\Controllers\FetchController;
+use BrainalyzedWP\Services\Cron;
 
 App::$app->xhr->post('test', [FetchController::class, 'candleDataRaw']);
-App::$app->xhr->post('cron', [CronController::class, 'cronHandler']);
+App::$app->xhr->post('cron', [Cron::class, 'cronHandler']);
 
 App::$app->xhr->post('whitelist', [FetchController::class, 'whitelist']);
 
