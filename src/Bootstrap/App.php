@@ -73,30 +73,12 @@ class App
 			}
 		}, 99);
 
-		add_filter('cron_schedules', function ($schedules) {
-			$schedules['five_minutes'] = [
-				'interval' => 5 * 60,
-				'display'  => esc_html__('Every Five Minute'),
-			];
-			$schedules['minute'] = [
-				'interval' => 60,
-				'display'  => esc_html__('Every Minute'),
-			];
-			return $schedules;
-		});
-
-		add_action('brainalyzed_cron_task', function () {
-			$this->cron = new Cron;
-			$this->cron->controller->cronHandler();
-		});
-
-		if (!wp_next_scheduled('brainalyzed_cron_task')) {
-			wp_schedule_event(time(), 'five_minutes', 'brainalyzed_cron_task');
-		} else {
-			if (time() - wp_next_scheduled('brainalyzed_cron_task') > 5 * 60) {
-				wp_unschedule_event( wp_next_scheduled('brainalyzed_cron_task'), 'brainalyzed_cron_task' );
+		add_action('init', function() {
+			if (defined( 'DOING_CRON' )) {
+				$this->cron = new Cron;
 			}
-		}
+		});
+		
 	}
 
 	public function basePath($path = '')

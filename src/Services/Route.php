@@ -56,6 +56,7 @@ class Route
 				[
 					'methods' => $route['method'],
 					'callback' => $route['callback'],
+					'permission_callback' => '__return_true',
 				],
 			);
 		}
