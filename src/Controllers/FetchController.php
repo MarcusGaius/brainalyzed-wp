@@ -4,63 +4,44 @@ namespace BrainalyzedWP\Controllers;
 
 use BrainalyzedWP\Bootstrap\App;
 use BrainalyzedWP\Helpers\Helper;
+use BrainalyzedWP\Services\Cron;
 
 class FetchController
 {
-	public function candleDataRaw()
+	public function instances()
 	{
-		$whitelist = get_option('pair_list_raw');
-		$timeframe = '5m';
-		$candleData = [];
-		foreach ($whitelist as $pair) {
-			(new CronController)->pairData($pair, $timeframe);
-			$candlePair = get_option(sprintf(
-				"%s%s-%s",
+		$instances = get_option(
+			sprintf(
+				"%sinstances",
 				App::$app->api->option_prefix,
-				Helper::slugify($pair),
-				$timeframe,
-			));
-
-			if (!$candlePair) {
-				(new CronController)->pairData($pair, $timeframe);
-				$candlePair = get_option(sprintf(
-					"%s%s-%s",
-					App::$app->api->option_prefix,
-					Helper::slugify($pair),
-					$timeframe,
-				));
-			}
-
-			$candleData[] = $candlePair;
-		}
-		wp_send_json($candleData);
-	}
-
-	public function whitelist()
-	{
-		$whitelist = get_option('pair_list_raw');
-		wp_send_json($whitelist);
+			)
+		);
+		wp_send_json($instances);
 	}
 
 	public function pairs()
 	{
-		$whitelistRaw = get_option('pair_list_raw');
-		$frequency = '5m';
-		$notDelayed = $this->_notDelayed();
+		$instances = get_option(
+			sprintf(
+				"%sinstances",
+				App::$app->api->option_prefix,
+			)
+		);
+		$notDelayed = App::$app->api->notDelayed();
 
-		$pairs = array_map(function ($pair) use ($notDelayed, $frequency) {
+		$instances = array_map(function ($instance) use ($notDelayed) {
 			return [
-				'name' => $pair,
-				'frequency' => $frequency,
-				'delayed' => !in_array($pair, $notDelayed),
+				'name' => $instance['name'],
+				'frequency' => $instance['frequency'],
+				'delayed' => !in_array($instance['name'], $notDelayed),
 			];
-		}, $whitelistRaw);
+		}, $instances);
 
-		usort($pairs, function ($a, $b) {
+		usort($instances, function ($a, $b) {
 			return $a['delayed'] <=> $b['delayed'];
 		});
 
-		wp_send_json($pairs);
+		wp_send_json($instances);
 	}
 
 	public function data()
@@ -76,40 +57,11 @@ class FetchController
 			$freq,
 		));
 
-		$pairData['data'] = array_slice($pairData['data'], -$limit, $limit);
-		$pairData['data_start'] = $pairData['data'][0][0] . '+00:00';
-		$pairData['data_start_ts'] = $pairData['data'][0][25];
-		$pairData['length'] = $limit;
-		wp_send_json($pairData);
-	}
-
-	private function _notDelayed()
-	{
-		$userSubscriptions = wcs_get_users_subscriptions(get_current_user_id());
-		$notDelayed = [];
-
-		foreach ($userSubscriptions as $sub) {
-			foreach ($sub->get_items() as $order_product) {
-				$notDelayed = array_merge(
-					$notDelayed,
-					explode(
-						' | ',
-						wc_get_product(
-							$order_product->get_product()
-								->get_parent_id()
-						)->get_attribute('pairs')
-					)
-				);
-			}
-		}
-
-		return $notDelayed;
-	}
-
-	private function _plan()
-	{
-		global $user;
-		$userSubscriptions = wcs_get_users_subscriptions($user->ID);
+		$data['data'] = array_slice($pairData['data'], -$limit, $limit);
+		$data['data_start'] = $pairData['data'][0][0] . '+00:00';
+		$data['data_start_ts'] = $pairData['data'][0][8];
+		$data['length'] = $limit;
+		wp_send_json($data);
 	}
 
 	public function trades()
@@ -125,13 +77,53 @@ class FetchController
 		wp_send_json($trades);
 	}
 
+	public function signals()
+	{
+		$pair = $_POST['pair'];
+		$freq = $_POST['frequency'];
+
+		$signals = get_option(
+			sprintf(
+				"%s%s-%s-signal_data",
+				App::$app->api->option_prefix,
+				Helper::slugify($pair),
+				$freq,
+			)
+		);
+		wp_send_json($signals);
+	}
+
 	public function frequencies()
 	{
-		wp_send_json([
-			[
-				'name' => '5m',
-				'value' => 30000,
-			],
-		]);
+		$freqMap = [
+			'1m' => 60*1000,
+			'5m' => 60*5*1000,
+			'15m' => 60*15*1000,
+			'30m' => 60*30*1000,
+			'1h' => 60*60*1000,
+			'2h' => 60*60*2*1000,
+			'4h' => 60*60*4*1000,
+			'6h' => 60*60*6*1000,
+			'8h' => 60*60*8*1000,
+			'12h' => 60*60*12*1000,
+			'1d' => 60*60*24*1000
+		];
+		$frequencies = get_option(
+			sprintf(
+				"%s%s",
+				App::$app->api->option_prefix,
+				'frequencies',
+			)
+		);
+		$mappedFrequencies = [];
+		foreach ($freqMap as $freqKey => $freqValue) {
+			if (in_array($freqKey, $frequencies)) {
+				$mappedFrequencies[] = [
+					'name' => $freqKey,
+					'value' => $freqValue,
+				];
+			}
+		}
+		wp_send_json($mappedFrequencies);
 	}
 }

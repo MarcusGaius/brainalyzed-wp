@@ -2,28 +2,20 @@
 
 namespace BrainalyzedWP\Bootstrap;
 
+use BrainalyzedWP\Controllers\Admin\AdminController;
 use BrainalyzedWP\Helpers\Helper;
 use BrainalyzedWP\Services\API;
 use BrainalyzedWP\Services\Cron;
 use BrainalyzedWP\Services\Route;
+use BrainalyzedWP\Services\User;
+use BrainalyzedWP\Services\WooCommerce;
 use BrainalyzedWP\Services\XHR;
+use BrainalyzedWP\Traits\ApplicationTrait;
 use Dotenv\Dotenv;
 
 class App
 {
-	public static $app = null;
-
-	/** @var Route */
-	public $routes;
-
-	/** @var XHR */
-	public $xhr;
-
-	/** @var API */
-	public $api;
-
-	/** @var Cron */
-	public $cron;
+	use ApplicationTrait;
 
 	private function __construct()
 	{
@@ -78,7 +70,24 @@ class App
 				$this->cron = new Cron;
 			}
 		});
-		
+
+		add_action('admin_menu', function () {
+			$this->admin = new AdminController;
+			add_menu_page(
+				'API Admin',
+				'API Admin',
+				'manage_options',
+				'brainalyzedwp',
+				[$this->admin, 'getAdminPage'],
+				'dashicons-rest-api',
+				99
+			);
+		});
+
+		add_action('woocommerce_init', function() {
+			$this->wc = new WooCommerce;
+			$this->user = new User;
+		});
 	}
 
 	public function basePath($path = '')

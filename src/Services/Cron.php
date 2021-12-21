@@ -21,9 +21,11 @@ class Cron
 	public function handler()
 	{
 		try {
-			$this->whitelist();
-			$this->listData();
-			$this->tradesData();
+			$this->instances();
+			$candleDataHasUpdate = $this->instanceData();
+			if ($candleDataHasUpdate) {
+				$this->signalsData();
+			}
 		} catch (\Throwable $th) {
 			return [
 				'status' => 'error',
@@ -39,9 +41,11 @@ class Cron
 	public function cronHandler()
 	{
 		try {
-			$this->whitelist();
-			$this->listData();
-			$this->tradesData();
+			$this->instances();
+			$candleDataHasUpdate = $this->instanceData();
+			if ($candleDataHasUpdate) {
+				$this->signalsData();
+			}
 		} catch (\Throwable $th) {
 			wp_send_json([
 				'status' => 'error',
@@ -67,22 +71,39 @@ class Cron
 		return $schedules;
 	}
 
-	public function whitelist()
+	public function instances()
 	{
-		$whitelist = App::$app->api->get('whitelist');
-		update_option('pair_list_raw', $whitelist['whitelist']);
+		$instances = App::$app->api->get('instances');
+		$this->_setFrequencies();
+		update_option(
+			sprintf(
+				"%sinstances",
+				App::$app->api->option_prefix,
+			),
+			$instances,
+		);
 	}
 
-	function listData()
+	public function instanceData()
 	{
-		$list = get_option('pair_list_raw');
-		$timeframes = $this->_getTimeframes();
-		$candleData = [];
-		foreach ($list as $pair) {
-			foreach ($timeframes as $timeframe) {
-				$candleData[] = $this->pairData($pair, $timeframe);
+		$instances = get_option(
+			sprintf(
+				"%sinstances",
+				App::$app->api->option_prefix,
+			)
+		);
+		$frequencies = $this->_getFrequencies();
+		$shouldUpdate = false;
+
+		foreach ($instances as $instance) {
+			foreach ($frequencies as $frequency) {
+				if ($frequency == $instance['frequency']) {
+					$shouldUpdate = $this->pairData($instance['name'], $frequency) || $shouldUpdate;
+				}
 			}
 		}
+
+		return $shouldUpdate;
 	}
 
 	public function pairData($pair, $timeframe)
@@ -94,17 +115,20 @@ class Cron
 			$timeframe,
 		), []);
 
+		if (!$this->shouldUpdateCandleData($candleDataOld)) return false;
+
 		$candleDataNew = App::$app->api
 			->get(
-				'pair_candles',
-				[
-					'query' => [
-						'pair'		=> $pair,
-						'timeframe'	=> $timeframe,
-						'limit'		=> 500,
-					],
-				],
+				"freq/pair_candles?pair=$pair&timeframe=$timeframe&limit=500",
+				// [
+				// 	'query' => [
+				// 		// 'pair'		=> $pair,
+				// 		'timeframe'	=> $timeframe,
+				// 		'limit'		=> 500,
+				// 	],
+				// ],
 			);
+			Helper::log('pera');
 
 		if (empty($candleDataOld)) {
 			update_option(
@@ -116,10 +140,10 @@ class Cron
 				),
 				$candleDataNew,
 			);
-			return;
+			return true;
 		}
 
-		$candleDataRaw = Helper::md_unique_sort(25, $candleDataOld['data'], $candleDataNew['data']);
+		$candleDataRaw = Helper::md_unique_sort(8, $candleDataOld['data'], $candleDataNew['data']);
 
 		$candleData = [
 			'strategy'			=> $candleDataOld['strategy'],
@@ -148,6 +172,8 @@ class Cron
 			),
 			$candleData,
 		);
+
+		return true;
 	}
 
 	public function tradesData()
@@ -192,10 +218,90 @@ class Cron
 		);
 	}
 
-	private function _getTimeframes()
+	public function signalsData()
 	{
-		return [
-			'5m',
-		];
+		$handle = 'signals';
+		$signalsData = App::$app->api->get($handle);
+
+		foreach ($signalsData as $signalDataNew) {
+			$signalDataOld = get_option(
+				sprintf(
+					"%s%s-%s-signal_data",
+					App::$app->api->option_prefix,
+					Helper::slugify($signalDataNew['name']),
+					$signalDataNew['frequency'],
+				),
+				[],
+			);
+
+			if (empty($signalDataOld)) {
+				update_option(
+					sprintf(
+						"%s%s-%s-signal_data",
+						App::$app->api->option_prefix,
+						Helper::slugify($signalDataNew['name']),
+						$signalDataNew['frequency'],
+					),
+					$signalDataNew,
+				);
+				return;
+			}
+
+			$signalRaw = Helper::md_unique_sort('time', $signalDataOld['signals'], $signalDataNew['signals']);
+
+			$signalData = [
+				'name' => $signalDataNew['name'],
+				'frequency' => $signalDataNew['frequency'],
+				'signals' => $signalRaw,
+			];
+			update_option(
+				sprintf(
+					"%s%s",
+					App::$app->api->option_prefix,
+					Helper::slugify($handle),
+				),
+				$signalData,
+			);
+		}
+	}
+
+	private function _setFrequencies()
+	{
+		$instances = get_option(
+			sprintf(
+				"%sinstances",
+				App::$app->api->option_prefix,
+			)
+		);
+		$frequencies = array_unique(array_column($instances, 'frequency'));
+
+		update_option(
+			sprintf(
+				"%s%s",
+				App::$app->api->option_prefix,
+				'frequencies',
+			),
+			$frequencies,
+		);
+	}
+
+	private function _getFrequencies()
+	{
+		$frequencies = get_option(
+			sprintf(
+				"%s%s",
+				App::$app->api->option_prefix,
+				'frequencies',
+			)
+		);
+		return $frequencies;
+	}
+
+	private function shouldUpdateCandleData(array $candleData): bool
+	{
+		if (!empty($candleData)) {
+			if ($candleData['timeframe_ms'] + $candleData['data_stop_ts'] > time()) return false;
+		}
+		return true;
 	}
 }
