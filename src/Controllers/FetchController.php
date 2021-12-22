@@ -27,19 +27,19 @@ class FetchController
 				App::$app->api->option_prefix,
 			)
 		);
-		$notDelayed = App::$app->api->notDelayed();
+		// $notDelayed = App::$app->api->notDelayed();
 
-		$instances = array_map(function ($instance) use ($notDelayed) {
-			return [
-				'name' => $instance['name'],
-				'frequency' => $instance['frequency'],
-				'delayed' => !in_array($instance['name'], $notDelayed),
-			];
-		}, $instances);
+		// $instances = array_map(function ($instance) use ($notDelayed) {
+		// 	return [
+		// 		'name' => $instance['name'],
+		// 		'frequency' => $instance['frequency'],
+		// 		'delayed' => !in_array($instance['name'], $notDelayed),
+		// 	];
+		// }, $instances);
 
-		usort($instances, function ($a, $b) {
-			return $a['delayed'] <=> $b['delayed'];
-		});
+		// usort($instances, function ($a, $b) {
+		// 	return $a['delayed'] <=> $b['delayed'];
+		// });
 
 		wp_send_json($instances);
 	}
@@ -57,11 +57,11 @@ class FetchController
 			$freq,
 		));
 
-		$data['data'] = array_slice($pairData['data'], -$limit, $limit);
-		$data['data_start'] = $pairData['data'][0][0] . '+00:00';
-		$data['data_start_ts'] = $pairData['data'][0][8];
-		$data['length'] = $limit;
-		wp_send_json($data);
+		$pairData['data'] = array_slice($pairData['data'], -$limit, $limit);
+		$pairData['data_start'] = $pairData['data'][0][0] . '+00:00';
+		$pairData['data_start_ts'] = $pairData['data'][0][8];
+		$pairData['length'] = $limit;
+		wp_send_json($pairData);
 	}
 
 	public function trades()
@@ -88,7 +88,11 @@ class FetchController
 				App::$app->api->option_prefix,
 				Helper::slugify($pair),
 				$freq,
-			)
+			), [
+				'frequency'	=> $freq,
+				'name'		=> $pair,
+				'signals'	=> [],
+			]
 		);
 		wp_send_json($signals);
 	}

@@ -128,7 +128,6 @@ class Cron
 				// 	],
 				// ],
 			);
-			Helper::log('pera');
 
 		if (empty($candleDataOld)) {
 			update_option(
@@ -300,7 +299,7 @@ class Cron
 	private function shouldUpdateCandleData(array $candleData): bool
 	{
 		if (!empty($candleData)) {
-			if ($candleData['timeframe_ms'] + $candleData['data_stop_ts'] > time()) return false;
+			if (($candleData['timeframe_ms'] + $candleData['data_stop_ts']) > (time() * 1000)) return false;
 		}
 		return true;
 	}

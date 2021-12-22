@@ -37,7 +37,6 @@ class App
 
 	public function init()
 	{
-		$this->baseUri();
 		add_action('rest_api_init', function () {
 
 			$this->routes = new Route;

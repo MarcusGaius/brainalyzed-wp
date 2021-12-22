@@ -15,7 +15,7 @@ class UserController
 			], 404);
 		}
 		$apikey = $_POST['apikey'];
-		$userId = get_users([
+		$userId = (int) get_users([
 			'fields' => 'ids',
 			'meta_key' => App::$app->user::API_KEY_META,
 			'meta_value' => $apikey,
@@ -30,8 +30,6 @@ class UserController
 		}
 
 		$notDelayed = App::$app->api->notDelayed($userId);
-		
-
 
 		wp_send_json($notDelayed);
 	}
