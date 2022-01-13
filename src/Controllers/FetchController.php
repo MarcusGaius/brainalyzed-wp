@@ -91,7 +91,7 @@ class FetchController
 			), [
 				'frequency'	=> $freq,
 				'name'		=> $pair,
-				'signals'	=> ['wrong'],
+				'signals'	=> [],
 			]
 		);
 		wp_send_json($signals);
