@@ -4,7 +4,6 @@ namespace BrainalyzedWP\Controllers;
 
 use BrainalyzedWP\Bootstrap\App;
 use BrainalyzedWP\Helpers\Helper;
-use BrainalyzedWP\Services\Cron;
 
 class FetchController
 {
@@ -27,19 +26,19 @@ class FetchController
 				App::$app->api->option_prefix,
 			)
 		);
-		// $notDelayed = App::$app->api->notDelayed();
+		$notDelayed = array_column(App::$app->api->notDelayed(), 'name');
 
-		// $instances = array_map(function ($instance) use ($notDelayed) {
-		// 	return [
-		// 		'name' => $instance['name'],
-		// 		'frequency' => $instance['frequency'],
-		// 		'delayed' => !in_array($instance['name'], $notDelayed),
-		// 	];
-		// }, $instances);
+		$instances = array_map(function ($instance) use ($notDelayed) {
+			return [
+				'name' => $instance['name'],
+				'frequency' => $instance['frequency'],
+				'delayed' => !in_array($instance['name'], $notDelayed, 'name'),
+			];
+		}, $instances);
 
-		// usort($instances, function ($a, $b) {
-		// 	return $a['delayed'] <=> $b['delayed'];
-		// });
+		usort($instances, function ($a, $b) {
+			return $a['delayed'] <=> $b['delayed'];
+		});
 
 		wp_send_json($instances);
 	}
@@ -56,7 +55,11 @@ class FetchController
 			Helper::slugify($pair),
 			$freq,
 		));
-
+		if (!$pairData) {
+			Helper::log([
+				$pair, $freq, $limit
+			]);
+		}
 		$pairData['data'] = array_slice($pairData['data'], -$limit, $limit);
 		$pairData['data_start'] = $pairData['data'][0][0] . '+00:00';
 		$pairData['data_start_ts'] = $pairData['data'][0][8];
@@ -88,30 +91,30 @@ class FetchController
 				App::$app->api->option_prefix,
 				Helper::slugify($pair),
 				$freq,
-			), [
+			),
+			[
 				'frequency'	=> $freq,
 				'name'		=> $pair,
 				'signals'	=> [],
 			]
 		);
+		$notDelayed = App::$app->api->notDelayed();
+		$freqTimestamp = App::$app->api->freqMap[$freq];
+
+		if (!in_array($pair, array_column($notDelayed, 'name'))) {
+			foreach ($signals['signals'] as $signalKey => $signalValue) {
+				if ((int) $signalValue['time'] * 1000 > time() * 1000 - $freqTimestamp * 20) {
+					unset($signals['signals'][$signalKey]);
+				}
+			}
+		}
+
 		wp_send_json($signals);
 	}
 
 	public function frequencies()
 	{
-		$freqMap = [
-			'1m' => 60*1000,
-			'5m' => 60*5*1000,
-			'15m' => 60*15*1000,
-			'30m' => 60*30*1000,
-			'1h' => 60*60*1000,
-			'2h' => 60*60*2*1000,
-			'4h' => 60*60*4*1000,
-			'6h' => 60*60*6*1000,
-			'8h' => 60*60*8*1000,
-			'12h' => 60*60*12*1000,
-			'1d' => 60*60*24*1000
-		];
+		$freqMap = App::$app->api->freqMap;
 		$frequencies = get_option(
 			sprintf(
 				"%s%s",

@@ -17,8 +17,6 @@ const cron = () => {
 		.then(data => console.log(data))
 }
 
-() => {}
-
 const trades = () => {
 	body = new FormData()
 	body.append('action', 'trades')

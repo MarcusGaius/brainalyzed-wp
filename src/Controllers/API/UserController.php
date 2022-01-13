@@ -15,7 +15,7 @@ class UserController
 			], 404);
 		}
 		$apikey = $_POST['apikey'];
-		$userId = (int) get_users([
+		$userId = (int) @get_users([
 			'fields' => 'ids',
 			'meta_key' => App::$app->user::API_KEY_META,
 			'meta_value' => $apikey,

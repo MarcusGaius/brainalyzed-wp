@@ -6,10 +6,23 @@ use BrainalyzedWP\Bootstrap\App;
 use BrainalyzedWP\Helpers\Helper;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
-use WP_User;
 
 class API
 {
+	public $freqMap = [
+		'1m' => 60*1000,
+		'5m' => 60*5*1000,
+		'15m' => 60*15*1000,
+		'30m' => 60*30*1000,
+		'1h' => 60*60*1000,
+		'2h' => 60*60*2*1000,
+		'4h' => 60*60*4*1000,
+		'6h' => 60*60*6*1000,
+		'8h' => 60*60*8*1000,
+		'12h' => 60*60*12*1000,
+		'1d' => 60*60*24*1000
+	];
+
 	public $option_prefix = 'brainalyzed_api_';
 
 	private $client;
@@ -83,9 +96,8 @@ class API
 		try {
 			foreach ($userSubscriptions as $sub) {
 				foreach ($sub->get_items() as $order_product) {
-					$product = wc_get_product(
-						$order_product->get_product()->get_parent_id()
-					);
+					// dd($order_product->get_product());
+					$product = wc_get_product($order_product->get_product());
 					$pairs = explode(' | ', $product->get_attribute('pairs'));
 					foreach ($pairs as $pair) {
 						$notDelayed = array_merge(array_filter($instances, function($instance) use ($pair) {

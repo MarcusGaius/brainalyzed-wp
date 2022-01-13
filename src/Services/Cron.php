@@ -38,26 +38,6 @@ class Cron
 		];
 	}
 
-	public function cronHandler()
-	{
-		try {
-			$this->instances();
-			$candleDataHasUpdate = $this->instanceData();
-			if ($candleDataHasUpdate) {
-				$this->signalsData();
-			}
-		} catch (\Throwable $th) {
-			wp_send_json([
-				'status' => 'error',
-				'message' => $th->getMessage(),
-			]);
-		}
-
-		wp_send_json([
-			'status' => 'success',
-		]);
-	}
-
 	public function cronIntervals($schedules)
 	{
 		$schedules['five_minutes'] = [
@@ -102,7 +82,7 @@ class Cron
 				}
 			}
 		}
-
+		// return true;
 		return $shouldUpdate;
 	}
 
@@ -128,7 +108,6 @@ class Cron
 				// 	],
 				// ],
 			);
-
 		if (empty($candleDataOld)) {
 			update_option(
 				sprintf(
@@ -149,7 +128,7 @@ class Cron
 			'pair'				=> $candleDataOld['pair'],
 			'timeframe'			=> $candleDataOld['timeframe'],
 			'timeframe_ms'		=> $candleDataOld['timeframe_ms'],
-			'columns'			=> $candleDataOld['columns'],
+			'columns'			=> $candleDataNew['columns'],
 			'data'				=> $candleDataRaw,
 			'length'			=> count($candleDataRaw),
 			'buy_signals'		=> $candleDataOld['buy_signals'],
@@ -171,6 +150,9 @@ class Cron
 			),
 			$candleData,
 		);
+		if ($pair == 'BTC/USDT') {
+			Helper::log('pera');
+		}
 
 		return true;
 	}
@@ -243,7 +225,7 @@ class Cron
 					),
 					$signalDataNew,
 				);
-				return;
+				continue;
 			}
 
 			$signalRaw = Helper::md_unique_sort('time', $signalDataOld['signals'], $signalDataNew['signals']);
@@ -255,9 +237,10 @@ class Cron
 			];
 			update_option(
 				sprintf(
-					"%s%s",
+					"%s%s-%s-signal_data",
 					App::$app->api->option_prefix,
-					Helper::slugify($handle),
+					Helper::slugify($signalDataNew['name']),
+					$signalDataNew['frequency'],
 				),
 				$signalData,
 			);
@@ -299,7 +282,9 @@ class Cron
 	private function shouldUpdateCandleData(array $candleData): bool
 	{
 		if (!empty($candleData)) {
+			Helper::log("{$candleData['pair']} {$candleData['timeframe']}:\nShould update at:\t" . ($candleData['timeframe_ms'] + $candleData['data_stop_ts']) . "\nCurrent Timestamp:\t" . time() * 1000);
 			if (($candleData['timeframe_ms'] + $candleData['data_stop_ts']) > (time() * 1000)) return false;
+			Helper::log(str_pad("{$candleData['pair']} {$candleData['timeframe']}:", 26) . "Updated\n");
 		}
 		return true;
 	}
